@@ -5,24 +5,23 @@ import { Link } from 'react-router-dom'
 class SearchBooks extends Component {
     state = {
         matchingBooks:[],
-        book:[],
-        notFound:false
+        book:[]
     }
 
     updateQuery = (query) => {
         BooksAPI.search(query).then((matchingBooks) => {
             if (query===''){
-                this.setState({matchingBooks:[], notFound:false})
+                this.setState({matchingBooks:[]})
             } else if (matchingBooks.error){
-                this.setState({matchingBooks:[], notFound:true})
+                this.setState({matchingBooks:[]})
             }
             else{
-                this.setState({matchingBooks, notFound:false})
+                this.setState({matchingBooks})
             }
         })
     }   
 
-    findBook = (bookid) => {
+    bookSearch = (bookid) => {
         BooksAPI.get(bookid).then((book) => {
             this.setState ({book})
         })  
@@ -39,7 +38,6 @@ class SearchBooks extends Component {
                       </div>
                     </div>
                     <div className="search-books-results">
-                      {this.state.notFound ? (<h2>No books were found, please search again.</h2>) : (
                         <ol className="books-grid">
                             {this.state.matchingBooks.map((book) => (
                                 <li key={book.id}>
@@ -47,7 +45,7 @@ class SearchBooks extends Component {
                                         <div className="book-top">
                                             <div className="book-cover" style={{ width:128, height:193, backgroundImage: `url(${book.imageLinks !== undefined ? book.imageLinks.thumbnail:''})`}}></div>
                                                 <div className="book-shelf-changer">
-                                                    <select value={this.state.book.shelf} onMouseOver={() => this.findBook(book.id)} onChange={(event) => addBook(book,event.target.value)}>
+                                                    <select value={this.state.book.shelf} onMouseOver={() => this.bookSearch(book.id)} onChange={(event) => addBook(book,event.target.value)}>
                                                         <option value="none" disabled>Move to...</option>                            
                                                         <option value="currentlyReading">Currently Reading</option>
                                                         <option value="wantToRead">Want to Read</option>
@@ -61,8 +59,7 @@ class SearchBooks extends Component {
                                     </div>
                                 </li>
                                 ))}                
-                        </ol>
-                      ) }     
+                        </ol>    
                     </div>
                 </div>
         )
