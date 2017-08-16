@@ -11,11 +11,9 @@ class BooksApp extends React.Component {
     }
 
     getBooks = () => {
-        BooksAPI.getAll().then((book) => {
-            this.setState({
-                books: book
-            });
-        })
+        BooksAPI.getAll().then(
+            books => this.setState({ books })
+        )
     }
 
     componentDidMount() {
@@ -52,6 +50,13 @@ class BooksApp extends React.Component {
         )
     }
 
+    bookOnShelf = (book) => {
+        for (const b of this.state.books) {
+            if (b.id === book.id)
+                return b
+            }
+    }
+
 render() {
     return (
         <div className="app">
@@ -66,8 +71,8 @@ render() {
             />
             <Route path='/search' render={()=>(
                 <Search
+                    bookOnShelf={this.bookOnShelf}
                     addBook={this.addBook}
-                    updateBooks={this.updateBooks}
                 /> 
           )}/>
         </div>

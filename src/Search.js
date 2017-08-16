@@ -1,70 +1,70 @@
 import React, { Component } from 'react'
 import * as BooksAPI from './BooksAPI'
 import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import BookListing from './BookListing'
 
 class SearchBooks extends Component {
     state = {
-        matchingBooks:[],
-        book:[]
+        matchingBooks:[]
     }
 
-    updateQuery = (query) => {
-        BooksAPI.search(query).then((matchingBooks) => {
-            if (query===''){
-                this.setState({matchingBooks:[]})
-            } else if (matchingBooks.error){
-                this.setState({matchingBooks:[]})
-            }
-            else{
-                this.setState({matchingBooks})
-            }
-        })
-    }   
+    clearResults = () => (
+        this.setState({ matchingBooks: [] })
+    )
 
-    bookSearch = (bookid) => {
-        BooksAPI.get(bookid).then((book) => {
-            this.setState ({book})
-        })  
-    }
+    searchBook = (query) => (
+        BooksAPI.search(query).then(
+            matchingBooks => {
+                if (matchingBooks && (!matchingBooks.error)) {
+                    for (const book of matchingBooks) {
+                        const b = this.props.bookOnShelf(book)
+                        book.shelf = b ? b.shelf : 'none'
+                    }
+                    this.setState({ matchingBooks })
+                }
+            }
+        )
+    )
 
     render(){
-        const {addBook} = this.props
+        const { matchingBooks } = this.state
+        const { addBook } = this.props
+
         return (
-                <div className="search-books">
-                    <div className="search-books-bar">
-                      <Link to='/'  className="close-search">Close</Link>
-                      <div className="search-books-input-wrapper">
-                        <input type="text" placeholder="Search by title or author"  onChange={(event) => this.updateQuery(event.target.value)}/>
-                      </div>
-                    </div>
-                    <div className="search-books-results">
-                        <ol className="books-grid">
-                            {this.state.matchingBooks.map((book) => (
-                                <li key={book.id}>
-                                    <div className="book">
-                                        <div className="book-top">
-                                            <div className="book-cover" style={{ width:128, height:193, backgroundImage: `url(${book.imageLinks !== undefined ? book.imageLinks.thumbnail:''})`}}></div>
-                                                <div className="book-shelf-changer">
-                                                    <select value={this.state.book.shelf} onMouseOver={() => this.bookSearch(book.id)} onChange={(event) => addBook(book,event.target.value)}>
-                                                        <option value="none" disabled>Move to...</option>                            
-                                                        <option value="currentlyReading">Currently Reading</option>
-                                                        <option value="wantToRead">Want to Read</option>
-                                                        <option value="read">Read</option>
-                                                        <option value="none">None</option>
-                                                    </select>
-                                                </div>
-                                        </div>
-                                        <div className="book-title">{book.title}</div>
-                                        <div className="book-authors">{book.authors}</div>
-                                    </div>
-                                </li>
-                                ))}                
-                        </ol>    
+            <div className="search-books">
+                <div className="search-books-bar">
+                    <Link
+                        to='/'
+                        className="close-search"
+                        onClick={this.clearResults}>
+                    >
+                    Close
+                    </Link>
+                    <div className="search-books-input-wrapper">
+                        <input
+                        type="text"
+                        placeholder="Search by title or author"
+                        onChange={event => this.searchBook(event.target.value)}
+                        autoFocus
+                        />
                     </div>
                 </div>
+                <div className="search-books-results">
+                    <BookListing
+                        books={matchingBooks}
+                        addBook={addBook}
+                    />
+                </div>
+            </div>
         )
 
     }
+}
+
+SearchBooks.proptypes = {
+    bookOnShelf: PropTypes.func.isRequired,
+    addBook: PropTypes.func.isRequired
 }
 
 export default SearchBooks

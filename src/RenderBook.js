@@ -37,13 +37,14 @@ class RenderBook extends Component {
 		)
 	}
 }
+
 RenderBook.propTypes = {
 	book: PropTypes.shape({
 		id: PropTypes.string,
 		imageLinks: PropTypes.object.isRequired,
 		title: PropTypes.string.isRequired,
 		author: PropTypes.array,
-		shelf: PropTypes.string.isRequired,
+		shelf: PropTypes.string,
 	}),
 	updateBooks: PropTypes.func.isRequired,
 }
