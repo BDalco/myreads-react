@@ -1,25 +1,46 @@
-import React from 'react'
+import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import RenderBook  from './RenderBook'
 
-function BookShelf({title, books, updateBooks}) {
- 	return (
-		<div className="bookshelf">
-			<h2 className="bookshelf-title">{title}</h2>
-			<div className="bookshelf-books">
-				<ol className="books-grid">
-					{books.map((book) => (
-					<RenderBook key={book.id} book={book} updateBooks={updateBooks} />
-				))}
-				</ol>
+class BookShelf extends Component {
+ 	render() {
+ 		const {title, showBooks} = this.props
+ 		return (
+			<div className="bookshelf">
+				<h2 className="bookshelf-title">{title}</h2>
+				<div className="bookshelf-books">
+					<ol className="books-grid">
+						{showBooks.map((book) => (
+						<li key={book.id} className='book'>
+							<div className="book">
+								<div className="book-top">
+									<div className="book-cover">
+										<img src={book.imageLinks !== undefined ? book.imageLinks.thumbnail:''} alt={book.title + ' cover'} />
+									</div>
+									<div className="book-shelf-changer">
+										<RenderBook
+						                    shelves={this.props.shelfNames}
+						                    book={book}
+						                    updateBooks={this.props.updateBooks}/>
+									</div>
+								</div>
+								<div className="book-title">{book.title}</div>
+								{book.authors.map((author) => (
+									<div key={author} className="book-authors">{author}</div>
+								))}
+							</div>
+						</li>
+					))}
+					</ol>
+				</div>
 			</div>
-		</div>
-  	)
+		)
+  	}
 }
 
 BookShelf.propTypes = {
 	title: PropTypes.string.isRequired,
-	books: PropTypes.array
+	showBooks: PropTypes.array
 }
 
 export default BookShelf

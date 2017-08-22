@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { Component } from 'react'
 import * as BooksAPI from './BooksAPI'
 import './App.css'
 import { Route } from 'react-router-dom'
 import BookDisplay from './BookDisplay'
 import Search from './Search'
 
-class BooksApp extends React.Component {
+class BooksApp extends Component {
     state = {
         books: []
     }
@@ -20,10 +20,24 @@ class BooksApp extends React.Component {
         this.getBooks()
     }
 
-    updateBooks = (book) => {
-        BooksAPI.update({id: book.target.id}, book.target.value).then((book) => {
-             this.getBooks()
-        });
+    updateBooks = (shelf, book) => {
+        if(book.shelf !== shelf) {
+            BooksAPI.update(book, shelf).then(() => {
+              book.shelf = shelf
+              this.setState(state => ({
+                books: state.books.filter(b => b.id !== book.id).concat([ book ])
+              })
+            )
+          })
+        }
+      }
+
+    bookOnShelf = (id) => {
+        let matchedBook = this.state.books.filter(book => book.id === id)
+        if(matchedBook.length > 0) {
+            return matchedBook[0].shelf
+        }
+        return 'none'
     }
 
     getCurrentlyReadingBooks = () => {
@@ -44,24 +58,12 @@ class BooksApp extends React.Component {
         });
     }
 
-    addBook = (book,shelf) => {
-        BooksAPI.update(book,shelf).then(()=>
-          this.getBooks()  
-        )
-    }
-
-    bookOnShelf = (book) => {
-        for (const b of this.state.books) {
-            if (b.id === book.id)
-                return b
-            }
-    }
-
 render() {
     return (
         <div className="app">
             <Route exact path='/' render={()=>(
                 <BookDisplay
+                    books={this.state.books}
                     currentlyReadingBooks={this.getCurrentlyReadingBooks()}
                     wantToReadBooks={this.getWantToReadBooks()}
                     readBooks={this.getReadBooks()}
@@ -72,7 +74,7 @@ render() {
             <Route path='/search' render={()=>(
                 <Search
                     bookOnShelf={this.bookOnShelf}
-                    addBook={this.addBook}
+                    updateBooks={this.updateBooks}
                 /> 
           )}/>
         </div>

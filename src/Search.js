@@ -2,37 +2,46 @@ import React, { Component } from 'react'
 import * as BooksAPI from './BooksAPI'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import BookListing from './BookListing'
+import BookShelf from './BookShelf'
 
 class SearchBooks extends Component {
     state = {
-        matchingBooks:[]
+        showBooks:[],
+        query: ''
     }
 
     clearResults = () => (
-        this.setState({ matchingBooks: [] })
+        this.setState({ showBooks: [] })
     )
 
-    searchBook = (query) => (
-        BooksAPI.search(query).then(
-            matchingBooks => {
-                if (matchingBooks && (!matchingBooks.error)) {
-                    for (const book of matchingBooks) {
-                        const b = this.props.bookOnShelf(book)
-                        book.shelf = b ? b.shelf : 'none'
-                    }
-                    this.setState({ matchingBooks })
-                }
+    handleQuery = (query) => {
+        this.setState({query: query})
+        setTimeout(() =>this.searchBook(query), 200)
+    }
+
+    searchBook = (query) => {
+        let updatedShelfBooks = []
+
+        BooksAPI.search(query).then().then((books) => {
+            if(books && Array.isArray(books)) {
+                updatedShelfBooks = books.map(book => {
+                    book.shelf = this.props.bookOnShelf(book.id)
+                    return book
+                })
+
+                this.setState({showBooks: updatedShelfBooks})
             }
-        )
-    )
+            else {
+                this.setState({showBooks: []})
+            }
+        }
+    )}
 
     render(){
-        const { matchingBooks } = this.state
-        const { addBook } = this.props
+        const { showBooks } = this.state
 
         return (
-            <div className="search-books">
+            <div className='search-books'>
                 <div className="search-books-bar">
                     <Link
                         to='/'
@@ -43,18 +52,21 @@ class SearchBooks extends Component {
                     </Link>
                     <div className="search-books-input-wrapper">
                         <input
-                        type="text"
-                        placeholder="Search by title or author"
-                        onChange={event => this.searchBook(event.target.value)}
-                        autoFocus
+                            className="search-books"
+                            type="text"
+                            placeholder="Search Books"
+                            value={this.state.query}
+                            onChange={(event) => this.handleQuery(event.target.value)}
                         />
                     </div>
                 </div>
                 <div className="search-books-results">
-                    <BookListing
-                        books={matchingBooks}
-                        addBook={addBook}
-                    />
+                    {showBooks && showBooks.length > 0 && (
+                        <BookShelf
+                            showBooks={showBooks}
+                            title='Search Results'
+                            updateBooks={this.props.updateBooks}/>
+                    )}
                 </div>
             </div>
         )
@@ -63,8 +75,8 @@ class SearchBooks extends Component {
 }
 
 SearchBooks.proptypes = {
-    bookOnShelf: PropTypes.func.isRequired,
-    addBook: PropTypes.func.isRequired
+    updateBooks: PropTypes.func.isRequired,
+    showBooks: PropTypes.array
 }
 
 export default SearchBooks
